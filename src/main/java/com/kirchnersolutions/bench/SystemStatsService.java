@@ -46,10 +46,17 @@ public class SystemStatsService {
             OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(
                     OperatingSystemMXBean.class);
             ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-            stats = getSystem(si, os, cs, cpu) + ",\n : " + getCPU(cpu, wcp)
+            stats = getSystem(si, os, cs, cpu) + ",\r\n  " + getCPU(cpu, wcp)
                     + getCPULoads(osBean) +
-                    "%,\n : " + getThreads(bean) + ", \n: " + getMemory(wgm)
+                    "%,\r\n  " + getThreads(bean) + ", \r\n " + getMemory(wgm)
                     + getAllWinDiskStats();
+        }else{
+            //Still needs oshi variations.
+            OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(
+                    OperatingSystemMXBean.class);
+            ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+            stats = getCPULoads(osBean) +
+                    "%,\r\n : " + getThreads(bean);
         }
         return stats;
     }
@@ -96,14 +103,17 @@ public class SystemStatsService {
 
     private String getCPULoads(OperatingSystemMXBean osBean){
         double totLoad = osBean.getSystemCpuLoad();
+        //<bug>
         double sysLoad = osBean.getProcessCpuLoad();
-        double dbLoad = sysLoad * 100;
+        double progLoad = sysLoad * 100;
         sysLoad = totLoad - sysLoad;
+        //Not simultaneous, can be wrong.
+        //</bug>
         sysLoad*= 100;
         sysLoad = Double.parseDouble(String.format("%.2f", (sysLoad)));
         totLoad*= 100;
         totLoad = Double.parseDouble(String.format("%.2f", (totLoad)));
-        return ",Avg. CPU Load:" + String.format("%.2f", totLoad) + "%,System CPU Load:" + String.format("%.2f", sysLoad) + "%,Database CPU Load:" + String.format("%.2f", dbLoad);
+        return ",Avg. CPU Load:" + String.format("%.2f", totLoad) + "%,System CPU Load:" + String.format("%.2f", sysLoad) + "%,Program CPU Load:" + String.format("%.2f", progLoad);
     }
 
     private String getAllWinDiskStats(){
